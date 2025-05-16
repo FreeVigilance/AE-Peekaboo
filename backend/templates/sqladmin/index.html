@@ -1,0 +1,81 @@
+{% extends "sqladmin/layout.html" %}
+{% block content %}
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Административная панель - Поиск лекарств</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      background-color: #f4f6f8;
+      margin: 0;
+      padding: 0;
+      color: #333;
+    }
+    .container {
+      max-width: 800px;
+      margin: 50px auto;
+      padding: 20px;
+      background-color: #fff;
+      border-radius: 8px;
+      box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+    }
+    .header {
+      text-align: center;
+      margin-bottom: 30px;
+    }
+    .header h1 {
+      color: #1976d2;
+      font-size: 2.5em;
+      margin: 0;
+    }
+    .header p {
+      font-size: 1.2em;
+      color: #666;
+    }
+    .content {
+      line-height: 1.6;
+    }
+    .content h2 {
+      color: #1976d2;
+      font-size: 1.8em;
+      margin-top: 20px;
+    }
+    .content p {
+      font-size: 1.1em;
+      margin: 10px 0;
+    }
+    .content ul {
+      list-style-type: disc;
+      padding-left: 20px;
+    }
+    .content li {
+      margin: 10px 0;
+      font-size: 1.1em;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <div class="header">
+      <h1>Добро пожаловать в административную панель</h1>
+      <p>Поиск лекарств и побочных эффектов</p>
+    </div>
+    <div class="content">
+      <h2>Возможности администрирования</h2>
+      <p>В этой панели вы можете управлять данными, связанными с лекарствами и их побочными эффектами. Используйте доступные инструменты для поддержания актуальности и точности информации.</p>
+      <h2>Что вы можете делать:</h2>
+      <ul>
+        <li><strong>Добавлять данные:</strong> Вносите новые записи о лекарствах, их свойствах и побочных эффектах.</li>
+        <li><strong>Изменять данные:</strong> Обновляйте существующие записи, чтобы отражать актуальную информацию.</li>
+        <li><strong>Удалять данные:</strong> Удаляйте устаревшие или некорректные записи для поддержания качества базы данных.</li>
+      </ul>
+      <p>Для начала работы выберите соответствующую функцию в меню администрирования.</p>
+    </div>
+  </div>
+</body>
+</html>
+
+{% endblock %}
