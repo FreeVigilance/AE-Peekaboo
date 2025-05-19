@@ -33,7 +33,7 @@ const theme = createTheme({
 
 const Navbar = () => {
   const goToAdmin = () => {
-    window.open('http://localhost:8000/admin', '_blank');
+    window.open(`${process.env.REACT_APP_API_URL}/admin`, '_blank');
   };
 
   return (
@@ -98,7 +98,7 @@ const Home = ({ text, setText, report, setReport, loading, setLoading, openPrevi
     const body = { text: text };
     if (fuzzySearch) body['fuzzy'] = true;
 
-    const response = await fetch('http://127.0.0.1:8000/api/v1/find_medications/', {
+    const response = await fetch(`${process.env.REACT_APP_API_URL}/api/v1/find_medications/`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',

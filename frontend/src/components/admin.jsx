@@ -4,7 +4,7 @@ function MyComponent() {
     const navigate = useNavigate();
 
     const goToAdmin = () => {
-        window.location.href = 'http://localhost:8000/admin';
+        window.location.href = `${process.env.REACT_APP_API_URL}/admin`;
     };
 
     return <button onClick={goToAdmin}>В админку</button>;
