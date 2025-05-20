@@ -56,9 +56,9 @@ class AhoCorasickService:
             for i in range(len(normalized.split(" "))):
                 sentence_word = " ".join(normalized_splited[: i + 1])
                 automation.add_word(
-                    sentence_word.lower(), (normalized, drug.id)
+                    sentence_word.lower(), (normalized, drug.id, word)
                 )
 
                 if normalized != sentence_word.lower():
-                    automation.add_word(normalized, (normalized, drug.id))
+                    automation.add_word(normalized, (normalized, drug.id, word))
         return automation

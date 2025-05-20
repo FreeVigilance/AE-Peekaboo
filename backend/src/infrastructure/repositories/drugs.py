@@ -14,7 +14,7 @@ class DrugsRepo(BaseRepository):
         result = await self.session.execute(statement)
         return result.scalars().all()
 
-    async def get_drug_info(self, drug_ids: list):
+    async def get_drug_info(self, drug_ids: list, words: list):
         stmt = (
             sa.select(
                 Drug.trade_name,
@@ -31,7 +31,15 @@ class DrugsRepo(BaseRepository):
             .outerjoin(
                 TypeOfEvent, TypeOfEvent.id == SubmissionRule.type_of_event
             )
-            .where(Drug.id.in_(drug_ids))
+            .where(
+                sa.or_
+                    (
+                    Drug.id.in_(drug_ids),
+                    Drug.trade_name.in_(words),
+                    Drug.inn.in_(words),
+                )
+            )
         )
         result = await self.session.execute(stmt)
         return result.fetchall()
+

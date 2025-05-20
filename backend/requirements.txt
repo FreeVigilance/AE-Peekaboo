@@ -110,3 +110,4 @@ zopfli==0.2.3.post1
 black
 isort
 flake8
+gunicorn

@@ -108,10 +108,12 @@ class TextProcessingService:
     async def find_medications(
         self, automaton: ahocorasick.Automaton, text: str, fuzzy: bool
     ):
-        text, ids = await self.highlight_medications_in_text(
+        text, ids, matches = await self.highlight_medications_in_text(
             automaton, text, fuzzy=fuzzy
         )
-        drugs_data = await self._repo.get_drug_info(ids)
+        founded_words = [match[-1] for match in matches]
+        print(founded_words)
+        drugs_data = await self._repo.get_drug_info(ids, founded_words)
         drugs_data = [DrugTable.model_validate(drug) for drug in drugs_data]
         return {"highlighted_text": text, "drugs": drugs_data}
 
@@ -176,7 +178,6 @@ class TextProcessingService:
         founded_drugs_ids = set()
 
         doc = nlp(text)
-        starttime = time.monotonic()
 
         potential_matches = []
 
@@ -197,7 +198,7 @@ class TextProcessingService:
                     ]
                 )
                 striped_phrase = lemmatized_phrase.strip()
-                for _, (value, id) in automaton.iter(striped_phrase):
+                for _, (value, id, word) in automaton.iter(striped_phrase):
                     damerau_levenshtein_distance = (
                         DamerauLevenshtein.normalized_similarity(
                             value, striped_phrase
@@ -216,6 +217,7 @@ class TextProcessingService:
                             "id": id,
                             "color": "lightgreen",
                             "word_count": len(phrase_to_highlight.split()),
+                            "word": word,
                         }
                     )
 
@@ -232,7 +234,7 @@ class TextProcessingService:
                     break
             if not is_overlapping:
                 matches.append(
-                    (start, end, match["phrase"], match["id"], match["color"])
+                    (start, end, match["phrase"], match["id"], match["color"], match['word'])
                 )
                 processed_ranges.add((start, end))
                 founded_drugs_ids.add(match["id"])
@@ -241,6 +243,7 @@ class TextProcessingService:
             return (
                 await self._highlight_matches(text, matches),
                 founded_drugs_ids,
+                matches
             )
 
         await self._initialize_bk_tree(all_drugs)
@@ -255,34 +258,18 @@ class TextProcessingService:
         token_data = [
             (token.text, token.idx, len(token.text)) for token in doc
         ]
+        chunk_matches, chunk_ids = await self._process_token_chunk(token_data, bk_tree_data, matches)
 
-        num_chunks = os.cpu_count() or 4
-        chunk_size = math.ceil(len(token_data) / num_chunks)
-        token_chunks = [
-            token_data[i : i + chunk_size]
-            for i in range(0, len(token_data), chunk_size)
-        ]
-        coros = [
-            self._process_token_chunk(
-                chunk,
-                bk_tree_data,
-                matches,
-            )
-            for chunk in token_chunks
-        ]
-        results = await asyncio.gather(*coros)
-        for chunk_matches, chunk_ids in results:
-            matches.extend(chunk_matches)
-            founded_drugs_ids.update(chunk_ids)
-
-        return await self._highlight_matches(text, matches), founded_drugs_ids
+        matches.extend(chunk_matches)
+        founded_drugs_ids.update(chunk_ids)
+        return await self._highlight_matches(text, matches), founded_drugs_ids, matches
 
     @staticmethod
     async def _highlight_matches(highlighted_text, matches):
         sorted_matches = sorted(matches, key=lambda x: (x[0], -(x[1] - x[0])))
         filtered_matches = []
         last_end = -1
-        for start, end, word, drug_id, color in sorted_matches:
+        for start, end, word, drug_id, color, _ in sorted_matches:
             if start >= last_end:
                 filtered_matches.append((start, end, word, drug_id, color))
                 last_end = end

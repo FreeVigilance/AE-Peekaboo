@@ -55,9 +55,7 @@ def load_csv_to_db(csv_path, db_url):
                 routename=uuid.UUID(row["submission_rules.routename"]),
                 source_countries=row["submission_rules.source_countries"],
                 receiver=row["submission_rules.receiver"],
-                deadline_to_submit=convert_date(
-                    row["submission_rules.deadline_to_submit"]
-                ),
+                deadline_to_submit=None,
                 format=row["submission_rules.format"],
                 other_procedures=row["submission_rules.other_procedures"],
                 type_of_event=row["submission_rules.type_of_event"],
