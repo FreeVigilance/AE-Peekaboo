@@ -44,8 +44,8 @@ def load_csv_to_db(csv_path, db_url):
 
             drug = Drug(
                 id=uuid.UUID(row["drugs.id"]),
-                trade_name=row["drugs.trade_name"] or "",
-                inn=row["drugs.inn"] or "",
+                trade_name=row["drugs.trade_name"].replace('®', '') if row["drugs.trade_name"] else "",
+                inn=row["drugs.inn"].replace('®', '') if row["drugs.inn"] else "",
                 obligation=row["drugs.obligation"],
                 release_forms=row["drugs.release_forms"],
             )

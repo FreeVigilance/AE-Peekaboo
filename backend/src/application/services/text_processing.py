@@ -112,7 +112,6 @@ class TextProcessingService:
             automaton, text, fuzzy=fuzzy
         )
         founded_words = [match[-1] for match in matches]
-        print(founded_words)
         drugs_data = await self._repo.get_drug_info(ids, founded_words)
         drugs_data = [DrugTable.model_validate(drug) for drug in drugs_data]
         return {"highlighted_text": text, "drugs": drugs_data}
@@ -165,7 +164,7 @@ class TextProcessingService:
 
             if best_candidate and best_candidate[0] not in founded_drugs_ids:
                 drug_id, _ = best_candidate
-                matches.append((start, end, text, drug_id, "yellow"))
+                matches.append((start, end, text, drug_id, "yellow", text))
                 founded_drugs_ids.add(drug_id)
 
         return matches, founded_drugs_ids
