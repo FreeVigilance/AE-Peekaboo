@@ -190,6 +190,8 @@ class DrugAdmin(ModelView, model=Drug):
 class SubmissionAdmin(ModelView, model=SubmissionRule):
     column_exclude_list = [SubmissionRule.id]
     column_searchable_list = [
+        "drug.trade_name",
+        "drug.inn",
         SubmissionRule.routename,
         SubmissionRule.source_countries,
         SubmissionRule.receiver,
