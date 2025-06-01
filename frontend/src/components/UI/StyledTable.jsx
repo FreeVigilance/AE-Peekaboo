@@ -35,6 +35,8 @@ const ReportTable = ({ medications, setMedications }) => {
     trade_name: '',
     inn: '',
     obligation: '',
+    valid_start_date: '',
+    valid_end_date: '',
     source_countries: '',
     receiver: '',
     deadline_to_submit: '',
@@ -56,6 +58,8 @@ const ReportTable = ({ medications, setMedications }) => {
       'Торговое наименование',
       'Международное торговое наименование',
       'Обязательство',
+      'Начало действия',
+      'Конец действия',
       'Страны регистрации препарата',
       'Держатель регистрационного удостоверения',
       'Дедлайн подачи',
@@ -71,6 +75,8 @@ const ReportTable = ({ medications, setMedications }) => {
           row.trade_name || '',
           row.inn || '',
           row.obligation || '',
+          row.valid_start_date || '',
+          row.valid_end_date || '',
           row.source_countries || '',
           row.receiver || '',
           row.deadline_to_submit || '',
@@ -94,6 +100,8 @@ const ReportTable = ({ medications, setMedications }) => {
       'Торговое наименование': row.trade_name || '',
       'Международное торговое наименование': row.inn || '',
       'Обязательство': row.obligation || '',
+      'Начало действия': row.valid_start_date || '',
+      'Конец действия': row.valid_end_date || '',
       'Страны регистрации препарата': row.source_countries || '',
       'Держатель регистрационного удостоверения': row.receiver || '',
       'Дедлайн подачи': row.deadline_to_submit || '',
@@ -115,6 +123,8 @@ const ReportTable = ({ medications, setMedications }) => {
       trade_name: '',
       inn: '',
       obligation: '',
+      valid_start_date: '',
+      valid_end_date: '',
       source_countries: '',
       receiver: '',
       deadline_to_submit: '',
@@ -284,6 +294,30 @@ const ReportTable = ({ medications, setMedications }) => {
           />
           <TextField
             margin="dense"
+            name="valid_start_date"
+            label="Начало действия"
+            type="date"
+            fullWidth
+            value={formData.valid_start_date}
+            onChange={handleFormChange}
+            InputLabelProps={{
+              shrink: true,
+            }}
+          />
+          <TextField
+            margin="dense"
+            name="valid_end_date"
+            label="Конец действия"
+            type="date"
+            fullWidth
+            value={formData.valid_end_date}
+            onChange={handleFormChange}
+            InputLabelProps={{
+              shrink: true,
+            }}
+          />
+          <TextField
+            margin="dense"
             name="source_countries"
             label="Страны регистрации препарата"
             type="text"
@@ -309,7 +343,7 @@ const ReportTable = ({ medications, setMedications }) => {
             value={formData.deadline_to_submit}
             onChange={handleFormChange}
           />
-                      <TextField
+          <TextField
             margin="dense"
             name="type_of_event"
             label="Серьезность"
@@ -358,7 +392,7 @@ const ReportTable = ({ medications, setMedications }) => {
           overflowY: 'auto',
         }}
       >
-        <Table sx={{ minWidth: 1200 }} stickyHeader>
+        <Table sx={{ minWidth: 1400 }} stickyHeader>
           <TableHead>
             <TableRow>
               <TableCell
@@ -405,6 +439,26 @@ const ReportTable = ({ medications, setMedications }) => {
                 sx={{
                   color: 'white',
                   fontWeight: 'bold',
+                  minWidth: 150,
+                  backgroundColor: '#1976d2',
+                }}
+              >
+                Начало действия
+              </TableCell>
+              <TableCell
+                sx={{
+                  color: 'white',
+                  fontWeight: 'bold',
+                  minWidth: 150,
+                  backgroundColor: '#1976d2',
+                }}
+              >
+                Конец действия
+              </TableCell>
+              <TableCell
+                sx={{
+                  color: 'white',
+                  fontWeight: 'bold',
                   minWidth: 200,
                   backgroundColor: '#1976d2',
                 }}
@@ -431,7 +485,7 @@ const ReportTable = ({ medications, setMedications }) => {
               >
                 Дедлайн подачи
               </TableCell>
-                <TableCell
+              <TableCell
                 sx={{
                   color: 'white',
                   fontWeight: 'bold',
@@ -478,11 +532,12 @@ const ReportTable = ({ medications, setMedications }) => {
                 <TableCell>{row.trade_name}</TableCell>
                 <TableCell>{row.inn || ''}</TableCell>
                 <TableCell>{row.obligation || ''}</TableCell>
+                <TableCell>{row.valid_start_date ? row.valid_start_date.replace('T', ' ') : ''}</TableCell>
+                <TableCell>{row.valid_end_date ? row.valid_end_date.replace('T', ' ') : ''}</TableCell>
                 <TableCell>{row.source_countries || ''}</TableCell>
                 <TableCell>{row.receiver || ''}</TableCell>
                 <TableCell>{row.deadline_to_submit || ''}</TableCell>
-                                  <TableCell>{row.type_of_event || ''}</TableCell>
-
+                <TableCell>{row.type_of_event || ''}</TableCell>
                 <TableCell>{row.format || ''}</TableCell>
                 <TableCell>{row.other_procedures || ''}</TableCell>
               </TableRow>

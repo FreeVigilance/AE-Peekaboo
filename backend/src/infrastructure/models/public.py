@@ -1,10 +1,28 @@
 import uuid
 
-from sqlalchemy import Boolean, Column, Date, ForeignKey, String
+from sqlalchemy import Boolean, Column, Date, ForeignKey, String, DateTime
 from sqlalchemy.dialects.postgresql import UUID
 from sqlalchemy.orm import declarative_base, relationship
 
 Base = declarative_base()
+
+
+class SubmissionRuleDrug(Base):
+    __tablename__ = 'submission_rule_drug'
+
+    submission_rule_id = Column(
+        UUID(as_uuid=True),
+        ForeignKey('submission_rules.id'),
+        primary_key=True
+    )
+    drug_id = Column(
+        UUID(as_uuid=True),
+        ForeignKey('drugs.id'),
+        primary_key=True
+    )
+
+    submission_rule = relationship("SubmissionRule")
+    drug = relationship("Drug")
 
 
 class Drug(Base):
@@ -21,7 +39,11 @@ class Drug(Base):
     obligation = Column(String, nullable=True)
     release_forms = Column(String, nullable=True)
 
-    submission_rules = relationship("SubmissionRule", back_populates="drug")
+    submission_rules = relationship(
+        "SubmissionRule",
+        secondary=lambda: SubmissionRuleDrug.__table__,
+        back_populates="drugs"
+    )
 
     def __str__(self):
         return f"Drug: {self.id}, {self.trade_name[:30]} {self.inn[:30]}"
@@ -55,21 +77,25 @@ class SubmissionRule(Base):
         default=uuid.uuid4,
         nullable=False,
     )
-    routename = Column(
-        UUID(as_uuid=True), ForeignKey("drugs.id"), nullable=True
-    )
+
     source_countries = Column(String, nullable=True)
     receiver = Column(String, nullable=True)
     deadline_to_submit = Column(Date, nullable=True)
     format = Column(String, nullable=True)
     other_procedures = Column(String, nullable=True)
     type_of_event = Column(UUID, ForeignKey("type_of_event.id"), nullable=True)
+    valid_start_date = Column(DateTime, nullable=True, default=None)
+    valid_end_date = Column(DateTime, nullable=True, default=None)
 
-    drug = relationship("Drug", back_populates="submission_rules")
+    drugs = relationship(
+        "Drug",
+        secondary=lambda: SubmissionRuleDrug.__table__,
+        back_populates="submission_rules"
+    )
     event_types = relationship("TypeOfEvent", back_populates="submission_rule")
 
     def __str__(self):
-        return f"SubmissionRule: {self.id}"
+        return f"SubmissionRule: {self.id}, {self.receiver[:30]}"
 
 
 class User(Base):

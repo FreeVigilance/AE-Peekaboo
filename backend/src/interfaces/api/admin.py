@@ -9,6 +9,7 @@ from fastapi.security import OAuth2PasswordRequestForm
 from jwt import InvalidTokenError
 from sqladmin import Admin, ModelView
 from sqladmin.authentication import AuthenticationBackend, login_required
+from sqlalchemy import String, or_, cast
 from starlette.responses import Response
 
 from src.application.services.aho import AhoCorasickService
@@ -32,6 +33,8 @@ from src.infrastructure.repositories.user import UserRepo
 from src.infrastructure.session import async_session_factory
 from src.interfaces.api.dependencies.session import get_session
 from src.settings import settings
+
+from src.infrastructure.models.public import SubmissionRuleDrug
 
 logger = logging.getLogger(__name__)
 
@@ -174,8 +177,9 @@ class DrugAdmin(ModelView, model=Drug):
     column_searchable_list = [
         Drug.trade_name,
         Drug.inn,
+
     ]
-    column_details_exclude_list = [Drug.submission_rules]
+    # column_details_exclude_list = [Drug.submission_rules]
     column_formatters = {
         Drug.trade_name: lambda m, a: (
             m.trade_name[:50] + "..."
@@ -184,19 +188,26 @@ class DrugAdmin(ModelView, model=Drug):
         ),
     }
     page_size = 15
-    form_excluded_columns = ["submission_rules"]
+    # form_excluded_columns = ["submission_rules"]
+    form_ajax_refs = {
+        "submission_rules": {
+            "fields": ["id", "source_countries", "receiver"],
+        },
+    }
 
 
 class SubmissionAdmin(ModelView, model=SubmissionRule):
-    column_exclude_list = [SubmissionRule.id]
+    column_list = ["drugs"] + [column for column in SubmissionRule.__table__.columns]
     column_searchable_list = [
-        "drug.trade_name",
-        "drug.inn",
-        SubmissionRule.routename,
         SubmissionRule.source_countries,
         SubmissionRule.receiver,
-        SubmissionRule.type_of_event,
         SubmissionRule.deadline_to_submit,
+        SubmissionRule.valid_start_date,
+        SubmissionRule.valid_end_date,
+        "type_of_event.name",
+        "type_of_event.id",
+        "drugs.trade_name",
+        "drugs.inn",
     ]
     column_formatters = {
         SubmissionRule.receiver: lambda m, a: (
@@ -206,7 +217,7 @@ class SubmissionAdmin(ModelView, model=SubmissionRule):
     page_size = 15
 
     form_ajax_refs = {
-        "drug": {
+        "drugs": {
             "fields": ["id", "trade_name", "inn"],
         },
         "event_types": {
@@ -216,6 +227,57 @@ class SubmissionAdmin(ModelView, model=SubmissionRule):
             ],
         },
     }
+
+    def search_query(self, stmt, term: str):
+        """Specify the search query given the SQLAlchemy statement
+        and term to search for.
+        """
+        expressions = []
+        models_joined = {self.model}
+
+        for field in self._search_fields:
+            model = self.model
+            parts = field.split(".")
+
+            if parts[0] == "drugs":
+                model = Drug
+                if Drug not in models_joined:
+                    stmt = stmt.join(
+                        SubmissionRuleDrug,
+                        SubmissionRuleDrug.submission_rule_id == SubmissionRule.id,
+                        isouter=True
+                    ).join(
+                        Drug,
+                        SubmissionRuleDrug.drug_id == Drug.id,
+                        isouter=True
+                    )
+                    models_joined.add(SubmissionRuleDrug)
+                    models_joined.add(Drug)
+
+                field_attr = getattr(model, parts[-1])
+                try:
+                    expressions.append(cast(field_attr, String).ilike(f"%{term}%"))
+                except AttributeError:
+                    expressions.append(field_attr.ilike(f"%{term}%"))
+                continue
+            for part in parts[:-1]:
+                if parts[0] == 'type_of_event' and len(parts) > 1:
+                    model = TypeOfEvent
+                else:
+                    model = getattr(model, part).mapper.class_
+                if model not in models_joined:
+                    models_joined.add(model)
+                    stmt = stmt.join(model, isouter=True)
+
+            field_attr = getattr(model, parts[-1], None)
+            if field_attr is None:
+                continue
+            try:
+                expressions.append(cast(field_attr, String).ilike(f"%{term}%"))
+            except AttributeError:
+                expressions.append(field_attr.ilike(f"%{term}%"))
+
+        return stmt.filter(or_(*expressions))
 
 
 class TypeOfEventAdmin(ModelView, model=TypeOfEvent):
@@ -238,6 +300,22 @@ class UserAdmin(ModelView, model=User):
     column_searchable_list = [User.email, User.is_admin]
 
     page_size = 15
+
+
+class SubmissionRuleDrugAdmin(ModelView, model=SubmissionRuleDrug):
+    column_list = [column for column in SubmissionRuleDrug.__table__.columns]
+    column_searchable_list = [column for column in SubmissionRuleDrug.__table__.columns]
+
+    page_size = 15
+
+    form_ajax_refs = {
+        "submission_rule": {
+            "fields": ["id", 'source_countries', 'receiver'],
+        },
+        "drug": {
+            "fields": ["id", "trade_name", "inn"],
+        },
+    }
 
 
 class SQLAdminAuthenticationBackend(AuthenticationBackend):

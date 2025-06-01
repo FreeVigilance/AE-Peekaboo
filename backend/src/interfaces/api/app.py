@@ -20,6 +20,7 @@ from .admin import (
     SubmissionAdmin,
     TypeOfEventAdmin,
     UserAdmin,
+    SubmissionRuleDrugAdmin,
 )
 from .urls import router
 
@@ -70,3 +71,4 @@ admin.add_view(DrugAdmin)
 admin.add_view(SubmissionAdmin)
 admin.add_view(TypeOfEventAdmin)
 admin.add_view(UserAdmin)
+admin.add_view(SubmissionRuleDrugAdmin)
